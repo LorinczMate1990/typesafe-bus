@@ -6,6 +6,7 @@ yarn-error.log
 # TypeScript
 dist/
 *.tsbuildinfo
+types
 
 # IDEs and editors
 .vscode/
