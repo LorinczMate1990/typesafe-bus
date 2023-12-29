@@ -5,7 +5,11 @@
   "module": "dist/index.js",
   "types": "types/index.d.ts",
   "files": [ "dist", "types" ],
-  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LorinczMate1990/typesafe-bus"
+  },
+  "description": "A simple, type-safe publish-subscribe library for TypeScript, typesafe-bus offers efficient event handling with minimal overhead.",
   "scripts": {
     "build": "tsc",
     "test": "jest"

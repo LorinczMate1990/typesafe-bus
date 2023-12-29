@@ -5,7 +5,17 @@ type MessageMustHaveTopic = {
 
 type Callback<Message> = (message: Message) => void | boolean | Promise<void> | Promise<boolean>;
 
-class PubSub<Message extends MessageMustHaveTopic> {
+export interface Publish<Message extends MessageMustHaveTopic> {
+  publish(message: Message): Promise<void>;  
+}
+
+export interface Subscribe<Message extends MessageMustHaveTopic> {
+  subscribe(callback: Callback<Message>): number;
+  unsubscribe(id: number): boolean;
+  isSubscribed(id: number): boolean;
+}
+
+class PubSub<Message extends MessageMustHaveTopic> implements Publish<Message>, Subscribe<Message> {
   private callbacks: Map<number, Callback<Message>>;
   private idCounter: number;
 
