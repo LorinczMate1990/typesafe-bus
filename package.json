@@ -1,6 +1,6 @@
 {
   "name": "typesafe-bus",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "types/index.d.ts",
