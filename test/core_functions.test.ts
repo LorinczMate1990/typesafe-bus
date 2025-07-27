@@ -1,7 +1,7 @@
 import PubSub, { MessageCombinator } from '../src/index';
 
 describe('PubSub', () => {
-  type Message = { topic: "dummy", id: number }; // Example Message type, can be modified
+  type Message = { topic: "dummy" | "clever", id: number }; // Example Message type, can be modified
   let pubsub: PubSub<Message>;
 
   beforeEach(() => {
@@ -143,9 +143,10 @@ describe('PubSub', () => {
       });
     });
 
-    describe("Messages must be able to combined", () => {
+    describe("Messages of the same topic must be able to combined", () => {
       class ParityMessageCombinator implements MessageCombinator<Message> {
         combine(older: Message, newer: Message): Message | undefined {
+          if (older.topic != newer.topic) return; // Theoretically, should not happen
           if (older.id % 2 == newer.id % 2) return older;
         }
       }
@@ -174,6 +175,14 @@ describe('PubSub', () => {
           pubsub.addToQueue({topic: 'dummy', id: i+2});
         }
         expect(pubsub.getQueueLength()).toBe(100);
+      });
+
+      test("Messages of different topics should not interfere with combining", () => {
+        for (let i = 0; i < 100; ++i) {
+          pubsub.addToQueue({topic: 'dummy', id: 0});
+          pubsub.addToQueue({topic: 'clever', id: 1});
+        }
+        expect(pubsub.getQueueLength()).toBe(2);
       });
     });
   });
