@@ -8,6 +8,7 @@
 - Type-safe publish-subscribe pattern.
 - Supports both synchronous and asynchronous callbacks.
 - Flexible topic-based subscription.
+- Buffering and combining messages
 
 ## Installation
 
@@ -67,6 +68,12 @@ Unsubscribe when done:
 ```typescript
 pubsub.unsubscribe(subscriptionId);
 ```
+
+By using the `addToQueue` instead of `publish`, the publisher can collect the messages in a queue. This is useful, because messages can be combined, if a `MessageCombiner` instance was given to the PubSub. When the `MessageCombiner` can combine two sequential messages, only the combined message will be published.
+
+In some cases, this can give a significant performance boost. For example, when drawing events are following eachother, a clear event may remove every other events in the queue.
+
+Only messages in the same topic can be combined and addToQueue won't guarantee the orders of messages belonging to different topics.
 
 ## API
 
