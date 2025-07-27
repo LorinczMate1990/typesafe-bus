@@ -19,54 +19,56 @@ export interface MessageCombinator<Message extends MessageMustHaveTopic> {
 }
 
 class MessageQueue<Message extends MessageMustHaveTopic> {
-  private queue : Message[] = [];
+  private queues: Map<string, Message[]> = new Map();
   private combinator? : MessageCombinator<Message>;
   
   getLength() {
-    return this.queue.length;
+    let sum = 0;
+    for (const topic of this.queues.keys()) {
+      sum += this.queues.get(topic)?.length ?? 0;
+    }
+    return sum;
   }
 
   makeEmpty() {
-    this.queue = [];
+    this.queues.clear();
   }
 
-  constructor(combinator? : MessageCombinator<Message>) {
+  constructor(combinator?: MessageCombinator<Message>) {
     this.combinator = combinator;
   }
 
-  push(message : Message) {
-    if (this.queue.length < 1 || this.combinator == undefined) {
-      this.queue.push(message);
-      return;  
+  push(message: Message) {
+    if (!this.queues.has(message.topic)) {
+      this.queues.set(message.topic, []);
     }
+    const queue = this.queues.get(message.topic) ?? [];
     
-    let combinedMessage : Message | undefined = undefined;
+    if (queue.length < 1 || this.combinator == undefined) {
+      queue.push(message);
+      return;
+    }
+
+    let combinedMessage: Message | undefined = undefined;
     do {
-      const lastIndex = this.queue.length-1;
-      const older = this.queue[lastIndex];
+      const lastIndex = queue.length - 1;
+      const older = queue[lastIndex];
       combinedMessage = this.combinator.combine(older, message);
       if (combinedMessage !== undefined) {
-        this.queue.pop();
+        queue.pop();
         message = combinedMessage;
       }
-    } while (this.queue.length > 0 && combinedMessage !== undefined);
-    this.queue.push(message);
+    } while (queue.length > 0 && combinedMessage !== undefined);
+    queue.push(message);
   }
 
-  [Symbol.iterator](): Iterator<Message> {
-    let index = 0;
-    const data = this.queue;
-
-    return {
-      next(): IteratorResult<Message> {
-        if (index < data.length) {
-          return { value: data[index++], done: false };
-        } else {
-          return { value: undefined as any, done: true };
-        }
-      },
-    };
-  }  
+  *[Symbol.iterator](): Iterator<Message> {
+    for (const queue of this.queues.values()) {
+      for (const message of queue) {
+        yield message;
+      }
+    }
+  }
 }
 
 class PubSub<Message extends MessageMustHaveTopic> implements Publish<Message>, Subscribe<Message> {
@@ -74,7 +76,7 @@ class PubSub<Message extends MessageMustHaveTopic> implements Publish<Message>, 
   private idCounter: number = 0;
   private messageQueue: MessageQueue<Message>;
 
-  constructor(combinator? : MessageCombinator<Message>) {
+  constructor(combinator?: MessageCombinator<Message>) {
     this.messageQueue = new MessageQueue(combinator);
   }
 
